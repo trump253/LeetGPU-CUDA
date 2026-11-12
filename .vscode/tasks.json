@@ -87,6 +87,69 @@
       "problemMatcher": [
         "$gcc"
       ]
+    },
+    {
+      "label": "CUDA: list current exercise versions",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "${workspaceFolder}/scripts/run.py",
+        "${file}",
+        "--",
+        "--list-versions"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "CUDA: run current exercise (choose version)",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "${workspaceFolder}/scripts/run.py",
+        "${file}",
+        "--",
+        "--version",
+        "${input:solutionVersion}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "CUDA: compare current exercise versions (small)",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "${workspaceFolder}/scripts/run.py",
+        "${file}",
+        "--",
+        "--version",
+        "all",
+        "--size",
+        "small"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "solutionVersion",
+      "type": "promptString",
+      "description": "版本 ID、名称、all 或 default",
+      "default": "default"
     }
   ]
 }

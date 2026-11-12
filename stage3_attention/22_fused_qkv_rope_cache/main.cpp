@@ -38,5 +38,5 @@ int main(int argc, char** argv) {
             if(!f.run([&] { solve(x.data(), w.data(), cs.data(), pos.data(), kc.data(), vc.data(), o.data(), B, d_model, H_q, H_kv, D, S_max); })) ++failed;
         }
         return failed ? 1 : 0;
-    }, std::size(cases));
+    }, std::size(cases), list_solution_versions, select_solution_version);
 }

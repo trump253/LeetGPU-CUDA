@@ -28,6 +28,24 @@ extern "C" void solve(const float* input, float* output, int rows, int cols);
 
 校验标准：整数精确相等；浮点逐元素 `abs(actual-reference) <= 0 + 0*abs(reference)`，NaN/Inf 一律失败。输入只读区、输出边界保护区也会检查。计时前进行两次独立正确性校验，失败用例显示 FAIL 并跳过性能计时。
 
+## 实现版本
+
+| ID | 名称 | 默认 |
+| --- | --- | --- |
+| 0 | `naive` |  |
+| 1 | `tiled16_padding` | 是 |
+
+`solve()` 接口保持不变；在 `solution.cu` 的 `solve_vN()` 中编写各版本的 host 启动逻辑，并在 `kVersions` 中注册。`kDefaultVersion` 显式选择默认版本。新增版本不需要改 `main.cpp`。
+
+```bash
+# 以下命令在仓库根目录执行
+python3 scripts/run.py 02 -- --list-versions
+python3 scripts/run.py 02 -- --version 1 --size small --check-only
+python3 scripts/run.py 02 -- --version all --size small --iterations 20
+```
+
+也可以用版本名称选择，例如 `--version tiled16_padding`。版本选择在预热/计时之前完成；每版使用相同种子生成数据，分别校验和计时。详细添加步骤见[总说明](../../README.md#多版本实现)。
+
 ## 编译与运行
 
 以下命令在仓库根目录执行：
@@ -45,7 +63,7 @@ cmake --build --preset release --target p02_matrix_transpose -j 4
 
 也可用 `python3 scripts/run.py 02 -- --size medium` 自动配置、编译和运行。
 
-初始 kernel 留空，正常运行会 FAIL；完成实现后才会出现 PASS 和 CUDA event 的 mean/min/median/p95，以及主机端 solve+等待完成耗时。显存分配、输入上传、输出复位、CPU 参考和校验不计入 solve 时间。更多计时约定见根 README。
+已保留你当前完成的 kernel，并注册为上述版本。每个通过校验的版本分别输出 PASS、CUDA event 的 mean/min/median/p95，以及主机端 solve+等待完成耗时。显存分配、输入上传、输出复位、CPU 参考和校验不计入 solve 时间。更多计时约定见根 README。
 
 ## 练习记录
 

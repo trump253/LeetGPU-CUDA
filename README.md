@@ -2,7 +2,7 @@
 
 按 [LeetGPU.md](LeetGPU.md) 的三个阶段组织，包含全部 **21 道核心题 + 5 道选做题**。每题有独立的 `solution.cu`、接口头文件、测试主函数、中文 README 和 CMake target。
 
-`solution.cu` 中的 kernel 留空，供你独立实现。测试数据、CPU 参考结果、GPU 内存管理、正确性检查和计时已经准备好。初始状态运行题目会显示 `FAIL`；这表示答案尚未实现。`--self-test` 仅检查测试链路，不代表题目已做完。
+每题支持多个实现版本，`solve()` 对外接口保持不变。第 01/02 题已保留你完成的实现并注册为独立版本；其余题目提供待填写的 `v0: starter`。测试数据、CPU 参考结果、GPU 内存管理、正确性检查和计时已经准备好；空 kernel 仍会显示 `FAIL`。`--self-test` 仅检查测试链路，不代表题目已做完。
 
 ## 立即开始
 
@@ -20,6 +20,8 @@ cmake --build --preset release --target p02_matrix_transpose -j 4
 # 也可以按题号自动配置、编译和运行
 python3 scripts/run.py 02
 python3 scripts/run.py 02 -- --size small --iterations 20
+python3 scripts/run.py 02 -- --list-versions
+python3 scripts/run.py 02 -- --version all --size small --iterations 20
 ```
 
 查看并验证整个脚手架：
@@ -49,12 +51,13 @@ stage1_cuda_basics/             # 01–07，选做 24/25
 stage2_llm_operators/           # 08–15
 stage3_attention/              # 16–21，选做 22/23/26
   16_softmax_attention/
-    solution.cu               # 你要实现的 kernel 和 extern "C" solve
-    solution.h                # 官方 solve 接口声明
+    solution.cu               # kernel、各版 solve_vN、版本表和 extern "C" solve
+    solution.h                # 官方 solve 接口声明及公共版本 API
     main.cpp                  # 用例、随机数据、CPU 参考、main
     README.md                 # 题意、布局、规模、编译运行命令
     CMakeLists.txt
 common/bench.hpp               # 公共显存、校验、CLI、计时
+common/solution_versions.hpp    # 版本表校验、类型安全的 launcher 查找和选择 API
 common/reference.hpp           # CPU softmax / attention 数学参考
 scripts/run.py                 # 按题号/路径运行，无第三方 Python 依赖
 scripts/problems.json          # 题目索引
@@ -63,6 +66,54 @@ build/release/bin/             # 编译产物
 ```
 
 为保留三个阶段目录，选做的 Grouped GEMM、Top K Selection 放在第一阶段；融合 QKV、INT8 KV Attention、Attention Backward 放在第三阶段。编号与原题单一致。
+
+## 多版本实现
+
+每个版本由一个普通 CPU 函数 `solve_vN()` 管理自己的 grid、block、shared memory 和一个或多个 kernel。`main.cpp` 在预热和计时之前选择版本，计时内的 `solve()` 只通过函数指针调用对应 launcher。
+
+```bash
+# 查看版本 ID、名称以及显式指定的默认版本，无需 GPU
+python3 scripts/run.py 02 -- --list-versions
+# ID 和名称都可选择
+python3 scripts/run.py 02 -- --version 0 --size small
+python3 scripts/run.py 02 -- --version tiled16_padding --size small
+# 同一进程内，按注册顺序分别校验和计时所有版本
+python3 scripts/run.py 02 -- --version all --size small --warmup 5 --iterations 30
+# 不指定 --version，或指定 default，使用 kDefaultVersion
+python3 scripts/run.py 02 -- --version default --check-only
+```
+
+当前已有版本：
+
+| 题目 | v0 | v1 | 默认 |
+| --- | --- | --- | --- |
+| 01 Vector Addition | `scalar`，复用你现有的标量 kernel | `float4_tail`，保留 float4 加尾部处理 | 1 |
+| 02 Matrix Transpose | `naive`，现有朴素转置 | `tiled16_padding`，现有 16×17 shared tile | 1 |
+| 其他题目 | `starter`，待完成的原始模板 | 尚未注册 | 0 |
+
+新增版本只需修改对应题目的 `solution.cu`：
+
+1. 在匿名 namespace 中新增与 `solve()` 参数一致的 `solve_v2()`，编写其 host 启动逻辑。GPU kernel 仍定义在文件前部；不同版本可以复用已有 kernel。
+2. 在 `kVersions` 中增加 `{2, "your_version_name", solve_v2}`。名称不得重复、不得以数字开头，也不能使用保留名称 `all`、`default`；ID 是唯一的非负整数，允许不连续。
+3. 如需设为默认，将 `kDefaultVersion` 改成 `2`。新增版本不会自动改变默认选择。
+
+例如，转置题的版本表可扩展为以下结构（先自行完成 `solve_v2`）：
+
+```cpp
+using SolveFn = decltype(&solve);
+constexpr solution::Version<SolveFn> kVersions[] = {
+    {0, "naive", solve_v0},
+    {1, "tiled16_padding", solve_v1},
+    {2, "your_version_name", solve_v2},
+};
+constexpr int kDefaultVersion = 1;
+```
+
+其余注册、选择和 `solve()` 转发代码可直接沿用；`main.cpp`、CMake 和 VS Code 配置不需要随版本增加而修改。版本 ID/名称重复、默认 ID 不存在、launcher 为空会在编译时拒绝；命令行指定不存在的版本会明确报错并以 2 退出，不能静默回退。`--version` 只在一次启动时选择，可以直接与 `--case`、`--size`、`--seed`、`--check-only`、`--self-test` 组合。
+
+`--version all` 对每一版重新生成同样种子、同样尺寸的数据，并建立独立的 fixture；所有输入、GEMM 的 C_initial、可写 KV Cache 初始状态相同。每次 solve 调用前照常复位输出及可写输入。各版分别完成正确性检查、预热和计时，控制台标记 `[version=ID:NAME]`。错误结果返回 1，并继续检查其余版本；CUDA/运行时异常返回 2 并停止本次运行。
+
+所有版本按注册顺序运行，不交替执行 A/B，也不主动清空缓存。性能仍可能受 GPU 频率和执行顺序影响；`--version all` 提供一致的输入与测量流程，不代表严格消除了所有性能波动。版本选择器使用进程内状态，当前脚手架按单线程、顺序运行设计。
 
 ## 测试数据与校验
 
@@ -90,12 +141,12 @@ build/release/bin/             # 编译产物
 ./build/release/bin/p02_matrix_transpose --seed 123 --device 1
 ```
 
-`--size` 支持 `all`（默认）、`tiny`、`small`、`medium`、`large`；`--case` 从 0 编号，不与 `--size` 同用。默认 GPU 0、种子 42、预热 3 次、计时 10 次。`CUDA_VISIBLE_DEVICES` 也可用于选择 GPU。
+`--size` 支持 `all`（默认）、`tiny`、`small`、`medium`、`large`；`--case` 从 0 编号，不与 `--size` 同用。`--version` 支持 ID、名称、`all` 和 `default`；默认使用各题显式指定的版本。`--list-cases` 只列一次用例，`--list-versions` 列出实现版本，这两种操作都不需要 GPU。默认 GPU 0、种子 42、预热 3 次、计时 10 次。`CUDA_VISIBLE_DEVICES` 也可用于选择 GPU。
 
 正确后，每个规模输出以下字段：
 
 ```text
-[small] rows=31, cols=33, pattern=random | device_MiB=... | cpu_ref_ms=...
+[version=1:tiled16_padding] [small] rows=31, cols=33, pattern=random | device_MiB=... | cpu_ref_ms=...
   PASS | gpu_us mean=... min=... median=... p95=... | solve_wall_us mean=...
 ```
 
@@ -113,7 +164,9 @@ build/release/bin/             # 编译产物
 - `c_cpp_properties.json` 使用 `/usr/local/cuda/bin/nvcc`、CUDA include 路径、C++17，以及实际生成的 `build/release/compile_commands.json`。主函数是普通 C++，其编译命令由数据库提供。
 - CMake Tools 使用 presets 和本机 `/usr/local/bin/cmake`，首次打开可自动配置；手动选择 `release` configure preset 即可。
 - 打开任意题目目录内的文件，`Ctrl+Shift+B` 构建当前题目；在 **Terminal → Run Task** 运行 `CUDA: run current exercise` 或 `CUDA: check current exercise (small)`。
+- 使用 `CUDA: run current exercise (choose version)` 输入版本 ID、名称或 `all`；`CUDA: compare current exercise versions (small)` 对当前题目的所有注册版本进行 small 规模校验和计时。
 - 保持当前编辑器文件位于题目目录，按 **F5** 使用 `cuda-gdb` 调试当前题目。启动前自动编译对应 Debug target，默认只跑 small 正确性测试。根目录文件不对应题目，不能用“当前题目”任务。
+- 如需调试特定版本，在调试配置中选择 `CUDA: debug current exercise (choose version)` 并输入版本选择值；原有默认调试入口继续使用 `kDefaultVersion`。
 
 如果之前打开过未配置状态，先执行 `cmake --preset release`，再执行 **C/C++: Reset IntelliSense Database** 或 **Developer: Reload Window** 刷新缓存。编译数据库重新生成即可跟随实际编译选项，无需手工填写 GCC 内部 include 目录。
 
@@ -177,7 +230,7 @@ cmake --preset release -DCMAKE_CUDA_ARCHITECTURES=86
 | 25 | 1 | [Top K Selection（选做）](stage1_cuda_basics/25_top_k_selection/README.md) | `p25_top_k_selection` |
 | 26 | 3 | [Softmax Attention Backward（选做）](stage3_attention/26_attention_backward/README.md) | `p26_attention_backward` |
 
-## 搭建验收（2026-11-12）
+## 初始搭建验收（2026-11-12）
 
 - 26 个练习 target 全部通过 Release 编译；转置题通过 Debug 编译。
 - `ctest --preset scaffold`：28/28 通过，包含全部 134 组数据的传输/校验自检，以及 CPU 数学参考和测试框架检查。
@@ -185,4 +238,14 @@ cmake --preset release -DCMAKE_CUDA_ARCHITECTURES=86
 - 公共框架通过 compute-sanitizer memcheck，0 errors；cuda-gdb 实际命中转置题的 GPU kernel 断点。
 - VS Code JSON、C/C++ properties 和 CMake presets 通过本机已安装扩展的 schema 校验，全部题目源文件均有编译数据库条目。未通过 GUI 操作确认编辑器诊断状态。
 
-最近一次自检输出在本地 `build/scaffold-validation.log`；构建目录不纳入版本控制。这些结果验证的是脚手架，题目 GPU 实现仍由你完成。
+初始自检输出在本地 `build/scaffold-validation.log`；构建目录不纳入版本控制。这些结果验证的是脚手架，题目 GPU 实现仍由你完成。
+
+## 多版本改造验收（2026-11-12）
+
+- 26 道题全部通过 Release 编译，共注册 28 个实现版本；第 01/02 题默认保留当前优化版，原有 kernel 源码逐字保留。
+- `ctest --preset scaffold`：31/31 通过，题目自检覆盖 134 个用例、146 个用例/版本组合；新增测试覆盖版本表、默认选择、多 kernel launcher、可写状态复位，以及无 GPU 时的版本列表/参数错误处理。
+- 第 01/02 题的全部已注册版本通过所有规模的正确性检查；small 规模的多版本计时输出正常。
+- 第 01/02 题全部版本的 small 用例通过 compute-sanitizer memcheck，0 errors；转置全部版本的 small 用例通过 racecheck，0 hazards。
+- 第 01/02 题 Debug 构建通过；VS Code 增加按版本运行、比较和调试入口。
+
+本轮自检记录在 `build/version-validation.log`，内存/竞争检查记录在 `build/version-*-memcheck.log`、`build/version-transpose-racecheck.log`。其余 24 道题仍保留待填写的 `starter`，自检通过不代表这些题目已实现。

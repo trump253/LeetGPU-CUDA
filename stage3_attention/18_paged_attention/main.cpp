@@ -37,5 +37,5 @@ int main(int argc, char** argv) {
             if(!f.run([&] { solve(q.data(), k.data(), v.data(), bt.data(), lens.data(), o.data(), batch_size, num_heads, head_dim, block_size, max_blocks_per_seq); })) ++failed;
         }
         return failed ? 1 : 0;
-    }, std::size(cases));
+    }, std::size(cases), list_solution_versions, select_solution_version);
 }

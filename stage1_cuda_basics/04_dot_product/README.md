@@ -28,6 +28,23 @@ extern "C" void solve(const float* A, const float* B, float* result, int N);
 
 校验标准：整数精确相等；浮点逐元素 `abs(actual-reference) <= 2e-3 + 2e-4*abs(reference)`，NaN/Inf 一律失败。输入只读区、输出边界保护区也会检查。计时前进行两次独立正确性校验，失败用例显示 FAIL 并跳过性能计时。
 
+## 实现版本
+
+| ID | 名称 | 默认 |
+| --- | --- | --- |
+| 0 | `starter` | 是 |
+
+`solve()` 接口保持不变；在 `solution.cu` 的 `solve_vN()` 中编写各版本的 host 启动逻辑，并在 `kVersions` 中注册。`kDefaultVersion` 显式选择默认版本。新增版本不需要改 `main.cpp`。
+
+```bash
+# 以下命令在仓库根目录执行
+python3 scripts/run.py 04 -- --list-versions
+python3 scripts/run.py 04 -- --version 0 --size small --check-only
+python3 scripts/run.py 04 -- --version all --size small --iterations 20
+```
+
+也可以用版本名称选择，例如 `--version starter`。版本选择在预热/计时之前完成；每版使用相同种子生成数据，分别校验和计时。详细添加步骤见[总说明](../../README.md#多版本实现)。
+
 ## 编译与运行
 
 以下命令在仓库根目录执行：

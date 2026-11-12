@@ -1,5 +1,7 @@
 #pragma once
 
+#include "solution_versions.hpp"
+
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 
@@ -35,9 +37,12 @@ inline double milliseconds(Clock::time_point a, Clock::time_point b) {
 
 struct Options {
     std::string size = "all";
+    std::string version = "default";
+    int selected_version = -1;
+    std::string selected_version_name;
     int iterations = 10, warmup = 3, device = 0, case_index = -1;
     uint32_t seed = 42;
-    bool self_test = false, check_only = false, list = false, help = false;
+    bool self_test = false, check_only = false, list = false, list_versions = false, help = false;
 
     bool select(const char* tier, int index) const {
         return (size == "all" || size == tier) && (case_index < 0 || index == case_index);
@@ -61,14 +66,16 @@ inline Options parse(int argc, char** argv) {
         if (key == "--self-test") o.self_test = true;
         else if (key == "--check-only") o.check_only = true;
         else if (key == "--list-cases") o.list = true;
+        else if (key == "--list-versions") o.list_versions = true;
         else if (key == "--help" || key == "-h") o.help = true;
         else {
             if (key != "--size" && key != "--case" && key != "--iterations" && key != "--warmup" &&
-                key != "--device" && key != "--seed")
+                key != "--device" && key != "--seed" && key != "--version")
                 throw std::invalid_argument("Unknown option: " + key);
             if (++i == argc) throw std::invalid_argument("Missing value for " + key);
             std::string arg = argv[i];
             if (key == "--size") o.size = arg;
+            else if (key == "--version") o.version = arg;
             else if (key == "--case") o.case_index = integer(arg, key, 0);
             else if (key == "--iterations") o.iterations = integer(arg, key, 1);
             else if (key == "--warmup") o.warmup = integer(arg, key, 0);
@@ -84,13 +91,16 @@ inline Options parse(int argc, char** argv) {
 }
 
 template <class Run>
-int entry(int argc, char** argv, const char* name, Run run, size_t cases) {
+int entry(int argc, char** argv, const char* name, Run run, size_t cases,
+          solution::VersionList (*available_versions)(), void (*select_version)(int)) {
     try {
         Options options = parse(argc, argv);
         if (options.help) {
             std::cout << name << "\n"
                 "  --size all|tiny|small|medium|large  (default all)\n"
                 "  --case INDEX        run one case from --list-cases\n"
+                "  --version ID|NAME|all|default  (default: exercise's explicit default)\n"
+                "  --list-versions     list registered versions without requiring a GPU\n"
                 "  --iterations N      measured repetitions (default 10)\n"
                 "  --warmup N          warmup repetitions (default 3)\n"
                 "  --seed N            reproducible seed (default 42)\n"
@@ -102,7 +112,16 @@ int entry(int argc, char** argv, const char* name, Run run, size_t cases) {
             return 0;
         }
         if (options.case_index >= int(cases)) throw std::invalid_argument("--case index out of range");
-        if (!options.list) {
+        const auto versions = available_versions();
+        if (options.list_versions) {
+            std::cout << name << " versions:\n";
+            for (const auto& v : versions)
+                std::cout << "  " << v.id << "  " << v.name << (v.is_default ? " (default)" : "") << '\n';
+            return 0;
+        }
+        const auto selected = solution::resolve_versions(versions, options.version);
+        if (options.list) return run(options);
+        {
             CUDA_CHECK(cudaSetDevice(options.device));
             CUDA_CHECK(cudaFree(nullptr));  // initialize context outside timing
             cudaDeviceProp prop{};
@@ -113,7 +132,17 @@ int entry(int argc, char** argv, const char* name, Run run, size_t cases) {
             if (options.self_test)
                 std::cout << "SELFTEST: CPU reference -> device -> host only; no solution/performance claim.\n";
         }
-        return run(options);
+        int result = 0;
+        for (const auto& v : selected) {
+            // All selection and string handling happen outside Fixture::run's timed calls.
+            select_version(v.id);
+            options.selected_version = v.id;
+            options.selected_version_name = v.name;
+            std::cout << "=== version " << v.id << ": " << v.name
+                      << (v.is_default ? " (default)" : "") << " ===\n";
+            result = std::max(result, run(options));
+        }
+        return result;
     } catch (const std::exception& e) {
         std::cerr << "ERROR: " << e.what() << '\n';
         return 2;
@@ -298,6 +327,9 @@ public:
             if (!b->finite_reference()) throw std::runtime_error("CPU reference has NaN/Inf or unwritten values: " + label_);
             bytes += b->device_bytes();
         }
+        if (options_.selected_version >= 0)
+            std::cout << "[version=" << options_.selected_version << ":"
+                      << options_.selected_version_name << "] ";
         std::cout << "[" << tier_ << "] " << label_ << " | device_MiB="
                   << std::fixed << std::setprecision(2) << bytes / 1048576.0
                   << " | cpu_ref_ms=" << reference_ms_ << std::endl;

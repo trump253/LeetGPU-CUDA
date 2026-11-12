@@ -35,5 +35,5 @@ int main(int argc, char** argv) {
             if(!f.run([&] { solve(a.data(), b.data(), o.data(), N); })) ++failed;
         }
         return failed ? 1 : 0;
-    }, std::size(cases));
+    }, std::size(cases), list_solution_versions, select_solution_version);
 }
