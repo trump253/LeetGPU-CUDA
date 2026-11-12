@@ -1,5 +1,8 @@
 #include "solution.h"
 
+constexpr int TILE_SIZE = 32;
+constexpr int BLOCK_THREADS_Y = 2;
+
 __global__ void matrix_transpose_kernel(const float* input, float* output, int rows, int cols) {
     int row = blockDim.y * blockIdx.y + threadIdx.y;
     int col = blockDim.x * blockIdx.x + threadIdx.x;
@@ -26,6 +29,32 @@ __global__ void matrix_transpose_kernel_v1(const float* __restrict__ input,
     }
 }
 
+__global__ void matrix_transpose_kernel_v2(const float* __restrict__ input,
+                                           float* __restrict__ output,
+                                           int rows, int cols) {
+    int row = blockIdx.y * TILE_SIZE + threadIdx.y;
+    int col = blockIdx.x * TILE_SIZE + threadIdx.x;
+    __shared__ float tile[TILE_SIZE][TILE_SIZE + 1];
+
+    for (int offset = 0; offset < TILE_SIZE; offset += BLOCK_THREADS_Y) {
+        int tile_row = row + offset;
+        if (tile_row < rows && col < cols) {
+            tile[threadIdx.y + offset][threadIdx.x] = input[tile_row * cols + col];
+        }
+    }
+
+    __syncthreads();
+
+    row = blockIdx.x * TILE_SIZE + threadIdx.y;
+    col = blockIdx.y * TILE_SIZE + threadIdx.x;
+    for (int offset = 0; offset < TILE_SIZE; offset += BLOCK_THREADS_Y) {
+        int tile_row = row + offset;
+        if (tile_row < cols && col < rows) {
+            output[tile_row * rows + col] = tile[threadIdx.x][threadIdx.y + offset];
+        }
+    }
+}
+
 namespace {
 // Each version owns its launch configuration and may launch multiple kernels.
 void solve_v0(const float* input, float* output, int rows, int cols) {
@@ -42,13 +71,21 @@ void solve_v1(const float* input, float* output, int rows, int cols) {
     // The harness checks CUDA errors and synchronizes; no sync is needed here.
 }
 
+void solve_v2(const float* input, float* output, int rows, int cols) {
+    dim3 block(TILE_SIZE, BLOCK_THREADS_Y);
+    dim3 grid((cols + TILE_SIZE - 1) / TILE_SIZE, (rows + TILE_SIZE - 1) / TILE_SIZE);
+    matrix_transpose_kernel_v2<<<grid, block>>>(input, output, rows, cols);
+    // The harness checks CUDA errors and synchronizes; no sync is needed here.
+}
+
 using SolveFn = decltype(&solve);
 // Add a solve_vN host launcher above, then register it here.
 constexpr solution::Version<SolveFn> kVersions[] = {
     {0, "naive", solve_v0},
     {1, "tiled16_padding", solve_v1},
+    {2, "tiled_multi_padding", solve_v2},
 };
-constexpr int kDefaultVersion = 1;
+constexpr int kDefaultVersion = 2;
 static_assert(solution::valid_versions(kVersions, kDefaultVersion),
               "Version IDs/names must be unique and the default must exist");
 SolveFn selected_impl = solution::find_launcher(kVersions, kDefaultVersion);
