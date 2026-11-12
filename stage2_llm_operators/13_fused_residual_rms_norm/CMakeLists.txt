@@ -1,0 +1,1 @@
+add_exercise(p13_fused_residual_rms_norm)

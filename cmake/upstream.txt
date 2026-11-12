@@ -1,0 +1,4 @@
+Official interface source: https://github.com/AlphaGPU/leetgpu-challenges
+Commit: 3b2ec31a1e088d6b8ed81962fbfd85bb92151b63
+Checked: 2026-11-12
+Local data generators and CPU references are independently implemented.

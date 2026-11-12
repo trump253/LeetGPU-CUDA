@@ -1,0 +1,1 @@
+add_exercise(p12_swiglu_mlp)

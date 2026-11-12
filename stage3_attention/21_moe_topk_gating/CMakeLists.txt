@@ -1,0 +1,1 @@
+add_exercise(p21_moe_topk_gating)

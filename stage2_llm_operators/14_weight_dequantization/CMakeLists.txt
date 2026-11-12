@@ -1,0 +1,1 @@
+add_exercise(p14_weight_dequantization)

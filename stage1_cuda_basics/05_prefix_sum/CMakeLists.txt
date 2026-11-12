@@ -1,0 +1,1 @@
+add_exercise(p05_prefix_sum)

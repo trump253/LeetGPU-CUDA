@@ -1,0 +1,8 @@
+add_subdirectory(08_softmax)
+add_subdirectory(09_rms_normalization)
+add_subdirectory(10_layer_normalization)
+add_subdirectory(11_rope)
+add_subdirectory(12_swiglu_mlp)
+add_subdirectory(13_fused_residual_rms_norm)
+add_subdirectory(14_weight_dequantization)
+add_subdirectory(15_int4_matmul)

@@ -1,0 +1,1 @@
+add_exercise(p26_attention_backward)

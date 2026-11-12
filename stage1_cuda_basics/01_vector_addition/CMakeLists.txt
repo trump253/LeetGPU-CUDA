@@ -1,0 +1,1 @@
+add_exercise(p01_vector_addition)

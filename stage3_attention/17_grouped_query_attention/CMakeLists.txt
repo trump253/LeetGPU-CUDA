@@ -1,0 +1,1 @@
+add_exercise(p17_grouped_query_attention)

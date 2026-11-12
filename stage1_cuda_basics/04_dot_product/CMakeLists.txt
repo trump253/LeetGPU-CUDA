@@ -1,0 +1,1 @@
+add_exercise(p04_dot_product)

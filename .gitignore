@@ -1,0 +1,55 @@
+# CMake 构建目录与本地生成文件
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+CTestTestfile.cmake
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CMakeUserPresets.json
+/Makefile
+/Testing/
+
+# C++ / CUDA 编译产物
+*.o
+*.obj
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+*.ptx
+*.cubin
+*.fatbin
+
+# 缓存与 Python 本地环境
+.cache/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 性能分析报告与运行日志
+*.nsys-rep
+*.ncu-rep
+*.qdrep
+*.log
+
+# 本地环境变量（示例配置可提交）
+.env
+.env.*
+!.env.example
+!.env.template
+
+# 编辑器临时文件；保留 .vscode 中共享的 JSON 配置
+.vscode/ipch/
+.vscode/*.VC.db*
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

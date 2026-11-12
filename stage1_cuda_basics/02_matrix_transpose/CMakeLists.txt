@@ -1,0 +1,1 @@
+add_exercise(p02_matrix_transpose)

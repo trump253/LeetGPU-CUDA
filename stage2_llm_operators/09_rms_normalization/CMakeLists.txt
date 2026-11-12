@@ -1,0 +1,1 @@
+add_exercise(p09_rms_normalization)

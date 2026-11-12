@@ -1,0 +1,1 @@
+add_exercise(p15_int4_matmul)

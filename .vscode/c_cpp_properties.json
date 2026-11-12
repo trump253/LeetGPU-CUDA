@@ -1,0 +1,21 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "Linux CUDA",
+      "compilerPath": "/usr/local/cuda/bin/nvcc",
+      "intelliSenseMode": "linux-gcc-x64",
+      "cStandard": "c17",
+      "cppStandard": "c++17",
+      "compileCommands": ["${workspaceFolder}/build/release/compile_commands.json"],
+      "includePath": [
+        "${workspaceFolder}/common",
+        "${workspaceFolder}/stage1_cuda_basics/**",
+        "${workspaceFolder}/stage2_llm_operators/**",
+        "${workspaceFolder}/stage3_attention/**",
+        "/usr/local/cuda/include"
+      ],
+      "defines": []
+    }
+  ]
+}

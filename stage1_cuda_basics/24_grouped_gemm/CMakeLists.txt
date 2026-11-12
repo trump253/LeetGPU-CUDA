@@ -1,0 +1,1 @@
+add_exercise(p24_grouped_gemm)

@@ -1,0 +1,1 @@
+add_exercise(p25_top_k_selection)

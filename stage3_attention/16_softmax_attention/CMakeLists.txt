@@ -1,0 +1,1 @@
+add_exercise(p16_softmax_attention)

@@ -1,0 +1,1 @@
+add_exercise(p10_layer_normalization)

@@ -1,0 +1,1 @@
+add_exercise(p22_fused_qkv_rope_cache)

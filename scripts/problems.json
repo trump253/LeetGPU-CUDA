@@ -1,0 +1,236 @@
+[
+  {
+    "id": 1,
+    "title": "Vector Addition",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/01_vector_addition",
+    "target": "p01_vector_addition",
+    "optional": false,
+    "cases": 6
+  },
+  {
+    "id": 2,
+    "title": "Matrix Transpose",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/02_matrix_transpose",
+    "target": "p02_matrix_transpose",
+    "optional": false,
+    "cases": 6
+  },
+  {
+    "id": 3,
+    "title": "Reduction",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/03_reduction",
+    "target": "p03_reduction",
+    "optional": false,
+    "cases": 6
+  },
+  {
+    "id": 4,
+    "title": "Dot Product",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/04_dot_product",
+    "target": "p04_dot_product",
+    "optional": false,
+    "cases": 6
+  },
+  {
+    "id": 5,
+    "title": "Prefix Sum",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/05_prefix_sum",
+    "target": "p05_prefix_sum",
+    "optional": false,
+    "cases": 6
+  },
+  {
+    "id": 6,
+    "title": "Histogramming",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/06_histogramming",
+    "target": "p06_histogramming",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 7,
+    "title": "General Matrix Multiplication (GEMM)",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/07_gemm",
+    "target": "p07_gemm",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 8,
+    "title": "Softmax",
+    "stage": "stage2_llm_operators",
+    "directory": "stage2_llm_operators/08_softmax",
+    "target": "p08_softmax",
+    "optional": false,
+    "cases": 6
+  },
+  {
+    "id": 9,
+    "title": "RMS Normalization",
+    "stage": "stage2_llm_operators",
+    "directory": "stage2_llm_operators/09_rms_normalization",
+    "target": "p09_rms_normalization",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 10,
+    "title": "Layer Normalization",
+    "stage": "stage2_llm_operators",
+    "directory": "stage2_llm_operators/10_layer_normalization",
+    "target": "p10_layer_normalization",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 11,
+    "title": "Rotary Positional Embedding (RoPE)",
+    "stage": "stage2_llm_operators",
+    "directory": "stage2_llm_operators/11_rope",
+    "target": "p11_rope",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 12,
+    "title": "SwiGLU MLP Block",
+    "stage": "stage2_llm_operators",
+    "directory": "stage2_llm_operators/12_swiglu_mlp",
+    "target": "p12_swiglu_mlp",
+    "optional": false,
+    "cases": 4
+  },
+  {
+    "id": 13,
+    "title": "Fused Residual Add and RMS Norm",
+    "stage": "stage2_llm_operators",
+    "directory": "stage2_llm_operators/13_fused_residual_rms_norm",
+    "target": "p13_fused_residual_rms_norm",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 14,
+    "title": "Weight Dequantization",
+    "stage": "stage2_llm_operators",
+    "directory": "stage2_llm_operators/14_weight_dequantization",
+    "target": "p14_weight_dequantization",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 15,
+    "title": "INT4 Weight-Only Quantized MatMul",
+    "stage": "stage2_llm_operators",
+    "directory": "stage2_llm_operators/15_int4_matmul",
+    "target": "p15_int4_matmul",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 16,
+    "title": "Softmax Attention",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/16_softmax_attention",
+    "target": "p16_softmax_attention",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 17,
+    "title": "Grouped Query Attention (GQA)",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/17_grouped_query_attention",
+    "target": "p17_grouped_query_attention",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 18,
+    "title": "Paged KV-Cache Attention",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/18_paged_attention",
+    "target": "p18_paged_attention",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 19,
+    "title": "Split-KV Attention Reduction",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/19_split_kv_reduction",
+    "target": "p19_split_kv_reduction",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 20,
+    "title": "Flash Decoding Attention",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/20_flash_decoding",
+    "target": "p20_flash_decoding",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 21,
+    "title": "MoE Top-K Gating",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/21_moe_topk_gating",
+    "target": "p21_moe_topk_gating",
+    "optional": false,
+    "cases": 5
+  },
+  {
+    "id": 22,
+    "title": "Fused QKV Projection with RoPE and KV Cache Update",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/22_fused_qkv_rope_cache",
+    "target": "p22_fused_qkv_rope_cache",
+    "optional": true,
+    "cases": 4
+  },
+  {
+    "id": 23,
+    "title": "INT8 KV-Cache Attention",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/23_int8_kv_attention",
+    "target": "p23_int8_kv_attention",
+    "optional": true,
+    "cases": 5
+  },
+  {
+    "id": 24,
+    "title": "Grouped GEMM",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/24_grouped_gemm",
+    "target": "p24_grouped_gemm",
+    "optional": true,
+    "cases": 5
+  },
+  {
+    "id": 25,
+    "title": "Top K Selection",
+    "stage": "stage1_cuda_basics",
+    "directory": "stage1_cuda_basics/25_top_k_selection",
+    "target": "p25_top_k_selection",
+    "optional": true,
+    "cases": 5
+  },
+  {
+    "id": 26,
+    "title": "Softmax Attention Backward",
+    "stage": "stage3_attention",
+    "directory": "stage3_attention/26_attention_backward",
+    "target": "p26_attention_backward",
+    "optional": true,
+    "cases": 5
+  }
+]

@@ -1,0 +1,1 @@
+add_exercise(p20_flash_decoding)

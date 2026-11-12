@@ -1,0 +1,1 @@
+add_exercise(p23_int8_kv_attention)

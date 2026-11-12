@@ -1,0 +1,1 @@
+add_exercise(p06_histogramming)

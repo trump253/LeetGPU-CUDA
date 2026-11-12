@@ -1,0 +1,1 @@
+add_exercise(p19_split_kv_reduction)

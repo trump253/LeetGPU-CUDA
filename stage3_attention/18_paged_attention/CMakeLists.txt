@@ -1,0 +1,1 @@
+add_exercise(p18_paged_attention)

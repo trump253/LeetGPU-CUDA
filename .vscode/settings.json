@@ -1,0 +1,16 @@
+{
+  "files.associations": {
+    "*.cu": "cuda-cpp",
+    "*.cuh": "cuda-cpp"
+  },
+  "cmake.cmakePath": "/usr/local/bin/cmake",
+  "cmake.useCMakePresets": "always",
+  "cmake.configureOnOpen": true,
+  "cmake.preferredGenerators": ["Unix Makefiles"],
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.errorSquiggles": "enabled",
+  "C_Cpp.default.cppStandard": "c++17",
+  "files.exclude": {"**/__pycache__": true},
+  "search.exclude": {"build/**": true},
+  "files.watcherExclude": {"**/build/**": true}
+}
